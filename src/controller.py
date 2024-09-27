@@ -17,14 +17,9 @@ class ProdutoParser:
         except ValueError as e:
             raise ValueError(f"Erro ao processar os dados do produto: {e}")
 
-class EstoqueController:
+class CadastroController:
     def __init__(self) -> None:
         self.produtos: Dict[int, Dict[str, Produto]] = {}
-
-    def verificar_produto_existe(self, codigo_produto: int) -> None:
-        """Verifica se um produto com o código informado existe no estoque."""
-        if codigo_produto not in self.produtos:
-            raise ValueError(f"Produto com código {codigo_produto} não encontrado.")
 
     def cadastrar_produto(self, produto: Produto) -> None:
         """Cadastra um novo produto no estoque."""
@@ -40,17 +35,18 @@ class EstoqueController:
         produto = ProdutoParser.parse(dados_produto)
         self.cadastrar_produto(produto)
 
-    def atualizar_estoque(self, codigo_produto: int, quantidade: int) -> None:
-        """Atualiza a quantidade de um produto no estoque."""
-        self.verificar_produto_existe(codigo_produto)
-        self.produtos[codigo_produto]['quantidade'] += quantidade
+    def remover_produto(self, codigo_produto: int) -> None:
+        """Remove um produto do estoque com base no código."""
+        if codigo_produto in self.produtos:
+            del self.produtos[codigo_produto]
+            print(f"Produto com código {codigo_produto} removido com sucesso.")
+        else:
+            raise ValueError(f"Produto com código {codigo_produto} não encontrado.")
 
-    def consultar_estoque(self, codigo_produto: int) -> str:
-        """Retorna a quantidade de um produto específico no estoque."""
-        self.verificar_produto_existe(codigo_produto)
-        produto = self.produtos[codigo_produto]['produto']
-        quantidade = self.produtos[codigo_produto]['quantidade']
-        return f"{produto.descricao}: {quantidade} unidades"
+
+class ConsultaController:
+    def __init__(self, cadastro_controller: CadastroController) -> None:
+        self.produtos = cadastro_controller.produtos
 
     def listar_produtos(self) -> Dict[int, Dict[str, Produto]]:
         """Retorna todos os produtos cadastrados."""
@@ -59,7 +55,7 @@ class EstoqueController:
     def buscar_produtos(self, termo: str = "", codigo: int = None) -> List[Dict[str, Produto]]:
         """Busca produtos no estoque por descrição ou código."""
         resultados = []
-        
+
         if codigo is not None:
             if codigo in self.produtos:
                 resultados.append(self.produtos[codigo])
@@ -71,19 +67,35 @@ class EstoqueController:
                     resultados.append(produto_info)
 
         return resultados
-    
-    def remover_produto(self, codigo_produto: int) -> None:
-        """Remove um produto do estoque com base no código."""
-        if codigo_produto in self.produtos:
-            del self.produtos[codigo_produto]
-            print(f"Produto com código {codigo_produto} removido com sucesso.")
-        else:
+
+    def consultar_estoque(self, codigo_produto: int) -> str:
+        """Retorna a quantidade de um produto específico no estoque."""
+        if codigo_produto not in self.produtos:
             raise ValueError(f"Produto com código {codigo_produto} não encontrado.")
+        produto = self.produtos[codigo_produto]['produto']
+        quantidade = self.produtos[codigo_produto]['quantidade']
+        return f"{produto.descricao}: {quantidade} unidades"
+
+
+class EstoqueController:
+    def __init__(self, cadastro_controller: CadastroController) -> None:
+        self.produtos = cadastro_controller.produtos
+
+    def verificar_produto_existe(self, codigo_produto: int) -> None:
+        """Verifica se um produto com o código informado existe no estoque."""
+        if codigo_produto not in self.produtos:
+            raise ValueError(f"Produto com código {codigo_produto} não encontrado.")
+
+    def atualizar_estoque(self, codigo_produto: int, quantidade: int) -> None:
+        """Atualiza a quantidade de um produto no estoque."""
+        self.verificar_produto_existe(codigo_produto)
+        self.produtos[codigo_produto]['quantidade'] += quantidade
 
     def listar_produtos_esgotados(self) -> list:
         """Retorna uma lista de produtos que estão esgotados (quantidade igual a zero)."""
         produtos_esgotados = [
-            produto_info for produto_info in self.produtos.values() 
+            produto_info for produto_info in self.produtos.values()
             if produto_info['quantidade'] == 0
         ]
         return produtos_esgotados
+
