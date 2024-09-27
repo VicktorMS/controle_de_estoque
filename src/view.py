@@ -1,6 +1,7 @@
 from .controller import EstoqueController
-from .utils import limpar_console, pausar_e_limpar
+from .utils import pausar_e_limpar
 
+# Dados iniciais
 ESTOQUE_INICIAL = (
     "Notebook Dell;201;15;3200.00;4500.00#Notebook Lenovo;202;10;2800.00;4200.00#"
     "Mouse Logitech;203;50;70.00;150.00#Mouse Razer;204;40;120.00;250.00#Monitor Samsung;205;10;800.00;1200.00#"
@@ -12,6 +13,13 @@ def carregar_estoque_inicial(controller: EstoqueController) -> None:
     """Carrega os dados iniciais de estoque a partir de uma string."""
     for produto in ESTOQUE_INICIAL.split("#"):
         controller.cadastrar_produto_de_string(produto)
+
+def exibir_produtos(produtos: list) -> None:
+    """Função auxiliar para exibir produtos formatados."""
+    for produto_info in produtos:
+        produto = produto_info['produto']
+        quantidade = produto_info['quantidade']
+        print(f"{produto.descricao} (Código: {produto.codigo}) - Quantidade: {quantidade} - Preço: R${produto.preco_venda}")
 
 def exibir_produtos_ordenados(controller: EstoqueController, crescente: bool = True) -> None:
     """Exibe os produtos em ordem crescente ou decrescente de quantidade."""
@@ -26,11 +34,7 @@ def exibir_produtos_ordenados(controller: EstoqueController, crescente: bool = T
         key=lambda x: x['quantidade'],
         reverse=not crescente
     )
-
-    for produto_info in produtos_ordenados:
-        produto = produto_info['produto']
-        quantidade = produto_info['quantidade']
-        print(f"{produto.descricao} (Código: {produto.codigo}) - Quantidade: {quantidade} - Preço de venda: R${produto.preco_venda}")
+    exibir_produtos(produtos_ordenados)
 
 def adicionar_produto(controller: EstoqueController) -> None:
     """Permite ao usuário adicionar um novo produto."""
@@ -42,12 +46,14 @@ def adicionar_produto(controller: EstoqueController) -> None:
         print(f"Erro ao adicionar produto: {e}")
 
 def atualizar_quantidade(controller: EstoqueController) -> None:
-    """Permite ao usuário atualizar a quantidade de um produto."""
+    """Permite ao usuário atualizar a quantidade de um produto no estoque (entrada ou saída)."""
     try:
         codigo = int(input("Digite o código do produto: "))
-        quantidade = int(input("Digite a nova quantidade: "))
-        controller.atualizar_estoque(codigo, quantidade)
-        print("Quantidade atualizada com sucesso!")
+        operacao = input("Digite 'entrada' para adicionar ou 'saida' para remover: ").strip().lower()
+        quantidade = int(input("Digite a quantidade: "))
+
+        controller.atualizar_estoque(codigo, quantidade, operacao)
+        print(f"Quantidade {operacao} realizada com sucesso!")
     except ValueError as e:
         print(f"Erro ao atualizar quantidade: {e}")
 
@@ -55,30 +61,24 @@ def buscar_produto(controller: EstoqueController) -> None:
     """Busca um produto por código ou descrição."""
     criterio = input("Buscar por (1) Código ou (2) Descrição? ")
 
-    if criterio == "1":
-        try:
+    try:
+        if criterio == "1":
             codigo = int(input("Digite o código do produto: "))
             resultados = controller.buscar_produtos(codigo=codigo)
-        except ValueError:
-            print("Código inválido.")
+        elif criterio == "2":
+            termo = input("Digite parte da descrição do produto: ")
+            resultados = controller.buscar_produtos(termo=termo)
+        else:
+            print("Opção inválida.")
             return
-    elif criterio == "2":
-        termo = input("Digite parte da descrição do produto: ")
-        resultados = controller.buscar_produtos(termo=termo)
-    else:
-        print("Opção inválida.")
-        return
 
-    if not resultados:
-        print("Nenhum produto encontrado.")
-    else:
-        for produto_info in resultados:
-            produto = produto_info['produto']
-            quantidade = produto_info['quantidade']
-            print(f"{produto.descricao} (Código: {produto.codigo}) - Quantidade: {quantidade} - Preço: R${produto.preco_venda}")
-
-    pausar_e_limpar()
-
+        if not resultados:
+            print("Nenhum produto encontrado.")
+        else:
+            exibir_produtos(resultados)
+    except ValueError:
+        print("Entrada inválida.")
+    
 def remover_produto(controller: EstoqueController) -> None:
     """Permite ao usuário remover um produto pelo código."""
     try:
@@ -86,7 +86,6 @@ def remover_produto(controller: EstoqueController) -> None:
         controller.remover_produto(codigo)
     except ValueError as e:
         print(f"Erro ao remover produto: {e}")
-    pausar_e_limpar()
 
 def listar_produtos_esgotados(controller: EstoqueController) -> None:
     """Exibe todos os produtos esgotados (quantidade igual a zero)."""
@@ -96,12 +95,8 @@ def listar_produtos_esgotados(controller: EstoqueController) -> None:
         print("Nenhum produto esgotado.")
     else:
         print("Produtos esgotados:")
-        for produto_info in produtos_esgotados:
-            produto = produto_info['produto']
-            print(f"{produto.descricao} (Código: {produto.codigo}) - Quantidade: 0")
+        exibir_produtos(produtos_esgotados)
 
-    pausar_e_limpar()
-    
 def filtrar_produtos_com_baixa_quantidade(controller: EstoqueController) -> None:
     """Permite ao usuário filtrar produtos com quantidade abaixo de um limite especificado."""
     try:
@@ -116,13 +111,7 @@ def filtrar_produtos_com_baixa_quantidade(controller: EstoqueController) -> None
     if not produtos_filtrados:
         print(f"Nenhum produto com quantidade abaixo de {limite_minimo}.")
     else:
-        print(f"Produtos com quantidade abaixo de {limite_minimo}:")
-        for produto_info in produtos_filtrados:
-            produto = produto_info['produto']
-            quantidade = produto_info['quantidade']
-            print(f"{produto.descricao} (Código: {produto.codigo}) - Quantidade: {quantidade}")
-
-    pausar_e_limpar()
+        exibir_produtos(produtos_filtrados)
 
 def exibir_menu() -> None:
     """Exibe o menu interativo para o usuário."""
@@ -130,12 +119,10 @@ def exibir_menu() -> None:
     print("1. Listar produtos por quantidade (crescente)")
     print("2. Listar produtos por quantidade (decrescente)")
     print("3. Adicionar produto")
-    print("4. Atualizar quantidade de produto")
+    print("4. Atualizar quantidade de produto (entrada/saída)")
     print("5. Buscar produto")
     print("6. Remover produto")
     print("7. Listar produtos esgotados")
     print("8. Filtrar produtos com baixa quantidade")
     print("9. Sair")
     print("======================================")
-
-

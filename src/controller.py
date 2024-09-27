@@ -86,10 +86,18 @@ class EstoqueController:
         if codigo_produto not in self.produtos:
             raise ValueError(f"Produto com código {codigo_produto} não encontrado.")
 
-    def atualizar_estoque(self, codigo_produto: int, quantidade: int) -> None:
-        """Atualiza a quantidade de um produto no estoque."""
+    def atualizar_estoque(self, codigo_produto: int, quantidade: int, operacao: str) -> None:
+        """Atualiza a quantidade de um produto no estoque com base na operação (entrada/saída)."""
         self.verificar_produto_existe(codigo_produto)
-        self.produtos[codigo_produto]['quantidade'] += quantidade
+        
+        if operacao == "entrada":
+            self.produtos[codigo_produto]['quantidade'] += quantidade
+        elif operacao == "saida":
+            if self.produtos[codigo_produto]['quantidade'] < quantidade:
+                raise ValueError(f"Estoque insuficiente para a quantidade solicitada. Estoque atual: {self.produtos[codigo_produto]['quantidade']}")
+            self.produtos[codigo_produto]['quantidade'] -= quantidade
+        else:
+            raise ValueError("Operação inválida. Use 'entrada' para adicionar ou 'saida' para remover.")
 
     def listar_produtos_esgotados(self) -> list:
         """Retorna uma lista de produtos que estão esgotados (quantidade igual a zero)."""
