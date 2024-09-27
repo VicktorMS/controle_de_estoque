@@ -1,19 +1,14 @@
 from src.controller import EstoqueController, CadastroController, ConsultaController
 from src.utils import pausar_e_limpar
 from src.view import (
-        exibir_menu,
-        exibir_produtos_ordenados,
-        adicionar_produto,
-        atualizar_quantidade,
-        carregar_estoque_inicial,
-        buscar_produto,
-        remover_produto,
-        listar_produtos_esgotados
-    ) 
+    exibir_menu, exibir_produtos_ordenados, adicionar_produto,
+    atualizar_quantidade, carregar_estoque_inicial, buscar_produto,
+    remover_produto, listar_produtos_esgotados, filtrar_produtos_com_baixa_quantidade
+)
 
 def main() -> None:
     """Função principal para inicializar o sistema de estoque com menu interativo."""
-    cadastro_controller = CadastroController()  # CadastroController mantém os dados dos produtos
+    cadastro_controller = CadastroController()  
     estoque_controller = EstoqueController(cadastro_controller)
     consulta_controller = ConsultaController(cadastro_controller)
 
@@ -44,6 +39,8 @@ def main() -> None:
         elif opt == "7":
             listar_produtos_esgotados(estoque_controller)
         elif opt == "8":
+            filtrar_produtos_com_baixa_quantidade(estoque_controller)
+        elif opt == "9":
             print("Saindo...")
             break
         else:
