@@ -99,3 +99,10 @@ class EstoqueController:
         ]
         return produtos_esgotados
 
+    def filtrar_produtos_com_baixa_quantidade(self, limite_minimo: int = 10) -> list:
+        """Filtra os produtos cuja quantidade esteja abaixo de um limite mínimo."""
+        produtos_filtrados = [
+            produto_info for produto_info in self.produtos.values() 
+            if produto_info['quantidade'] < limite_minimo
+        ]
+        return produtos_filtrados

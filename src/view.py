@@ -101,6 +101,28 @@ def listar_produtos_esgotados(controller: EstoqueController) -> None:
             print(f"{produto.descricao} (Código: {produto.codigo}) - Quantidade: 0")
 
     pausar_e_limpar()
+    
+def filtrar_produtos_com_baixa_quantidade(controller: EstoqueController) -> None:
+    """Permite ao usuário filtrar produtos com quantidade abaixo de um limite especificado."""
+    try:
+        limite = input("Digite o limite mínimo de quantidade (pressione Enter para usar o valor padrão 10): ")
+        limite_minimo = int(limite) if limite else 10
+    except ValueError:
+        print("Limite inválido, usando valor padrão de 10.")
+        limite_minimo = 10
+
+    produtos_filtrados = controller.filtrar_produtos_com_baixa_quantidade(limite_minimo)
+
+    if not produtos_filtrados:
+        print(f"Nenhum produto com quantidade abaixo de {limite_minimo}.")
+    else:
+        print(f"Produtos com quantidade abaixo de {limite_minimo}:")
+        for produto_info in produtos_filtrados:
+            produto = produto_info['produto']
+            quantidade = produto_info['quantidade']
+            print(f"{produto.descricao} (Código: {produto.codigo}) - Quantidade: {quantidade}")
+
+    pausar_e_limpar()
 
 def exibir_menu() -> None:
     """Exibe o menu interativo para o usuário."""
@@ -112,6 +134,8 @@ def exibir_menu() -> None:
     print("5. Buscar produto")
     print("6. Remover produto")
     print("7. Listar produtos esgotados")
-    print("8. Sair")
+    print("8. Filtrar produtos com baixa quantidade")
+    print("9. Sair")
     print("======================================")
+
 
