@@ -1,22 +1,27 @@
 from src.controller import EstoqueController, CadastroController, ConsultaController
 from src.utils import pausar_e_limpar
-from src.view import (
-    exibir_menu, exibir_produtos_ordenados, adicionar_produto,
-    atualizar_quantidade, carregar_estoque_inicial, buscar_produto,
-    remover_produto, listar_produtos_esgotados, filtrar_produtos_com_baixa_quantidade
-)
+from src.views.produto_view import (
+    adicionar_produto,
+    buscar_produto,
+    carregar_estoque_inicial,
+    exibir_produtos_ordenados,
+    remover_produto
+    )
+from src.views.estoque_view import (
+    atualizar_quantidade,
+    filtrar_produtos_com_baixa_quantidade,
+    listar_produtos_esgotados
+    )
+from src.views.menu_view import exibir_menu
 
 def main() -> None:
     """Função principal para inicializar o sistema de estoque com menu interativo."""
-    # Instanciando controladores
     cadastro_controller = CadastroController()  
     estoque_controller = EstoqueController(cadastro_controller)
     consulta_controller = ConsultaController(cadastro_controller)
 
-    # Carregando o estoque inicial
     carregar_estoque_inicial(cadastro_controller)
 
-    # Menu interativo
     while True:
         exibir_menu()
         opt = input("Escolha uma opção: ")
